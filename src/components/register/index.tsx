@@ -1,18 +1,19 @@
 import styled from "styled-components";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { ThemeContext } from "../../contexts/themeContext";
+import type { ThemeContextType } from "../../contexts/themeContext";
+import type { ThemeName } from "../../contexts/themeProvider";
+import { ThemeConfig } from "../../contexts/themeConfig";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const Container = styled.div`
-  max-width: 90%;
+const Container = styled.div<{ $theme: ThemeName }>`
+  width: 90%;
   margin: auto;
   height: 32rem;
-  background-color: hsl(
-    235,
-    24%,
-    19%
-  ); /* bg-neutral-very-dark-desaturated-blue */
+  background-color: ${({ $theme }) => ThemeConfig[$theme].todo.backgroundColor};
   border-radius: 1rem; /* rounded-2xl */
   display: flex;
   align-items: center;
@@ -35,8 +36,8 @@ const HeaderContainer = styled.div`
   border-bottom: 1px solid #9ca3af; /* border-b-gray-400 */
 `;
 
-const HeaderTitle = styled.h2`
-  color: hsl(0, 0%, 100%); /* text-white */
+const HeaderTitle = styled.h2<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   font-size: 2rem;
 `;
 
@@ -56,16 +57,14 @@ const InputGroup = styled.div`
   height: 4rem;
 `;
 
-// 6. LABEL (label)
-const Label = styled.label`
-  color: hsl(0, 0%, 100%); /* text-white */
+const Label = styled.label<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   font-size: 1.5rem;
   min-width: fit-content;
 `;
 
-// 7. INPUT (input)
-const Input = styled.input`
-  background-color: hsl(235, 21%, 11%); /* bg-neutral-very-dark-blue */
+const Input = styled.input<{ $theme: ThemeName }>`
+  background-color: ${({ $theme }) => ThemeConfig[$theme].todo.inputColor};
   padding: 1rem;
   width: 100%;
   border-radius: 1rem; /* rounded-2xl */
@@ -73,7 +72,7 @@ const Input = styled.input`
   border: none;
 
   &::placeholder {
-    color: hsl(236, 9%, 61%); /* placeholder-neutral-dark-grayish-blue */
+    color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   }
 
   &:focus {
@@ -106,8 +105,8 @@ const SubmitButton = styled.button`
   }
 `;
 
-const Return = styled.p`
-  color: hsl(236, 9%, 61%);
+const Return = styled.p<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   padding-top: 1rem;
   cursor: pointer;
   font-size: 1.2rem;
@@ -142,8 +141,9 @@ export const Register = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [warning, setWarning] = useState("");
+  const { theme } = useContext<ThemeContextType>(ThemeContext);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!email || !password || !name) {
@@ -157,19 +157,57 @@ export const Register = () => {
     }
 
     setWarning("");
-    console.log("Form enviado:", { email, password, name });
+
+    try {
+      const response = await fetch("http://localhost:3000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_name: name,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      // se a API respondeu erro (ex: email já cadastrado)
+      if (!response.ok) {
+        setWarning(data.message || "Erro ao cadastrar");
+        return;
+      }
+
+      // sucesso!
+      console.log("Usuário criado com sucesso!");
+
+      // se quiser, redirecionar depois de cadastrar:
+      // navigate("/login")
+
+      // limpar inputs
+      setEmail("");
+      setPassword("");
+      setName("");
+    } catch (error) {
+      console.error("Erro ao conectar:", error);
+      setWarning("Erro ao conectar com o servidor");
+    }
   };
 
   return (
-    <Container>
+    <Container $theme={theme}>
       <HeaderContainer>
-        <HeaderTitle>Cadastre-se</HeaderTitle>
+        <HeaderTitle $theme={theme}>Cadastre-se</HeaderTitle>
       </HeaderContainer>
 
       <Form onSubmit={handleSubmit} noValidate>
         <InputGroup>
-          <Label htmlFor="email">Email:</Label>
+          <Label $theme={theme} htmlFor="email">
+            Email:
+          </Label>
           <Input
+            $theme={theme}
             type="email"
             placeholder="Digite seu email"
             id="email"
@@ -179,8 +217,11 @@ export const Register = () => {
         </InputGroup>
 
         <InputGroup>
-          <Label htmlFor="password">Password:</Label>
+          <Label $theme={theme} htmlFor="password">
+            Senha:
+          </Label>
           <Input
+            $theme={theme}
             type="password"
             placeholder="Digite sua senha"
             id="password"
@@ -190,8 +231,11 @@ export const Register = () => {
         </InputGroup>
 
         <InputGroup>
-          <Label htmlFor="name">Nome:</Label>
+          <Label $theme={theme} htmlFor="name">
+            Nome:
+          </Label>
           <Input
+            $theme={theme}
             type="text"
             placeholder="Nome completo"
             id="name"
@@ -205,7 +249,7 @@ export const Register = () => {
         <SubmitButton type="submit">Cadastrar-se</SubmitButton>
       </Form>
       <Link to="/">
-        <Return>Voltar</Return>
+        <Return $theme={theme}>Voltar</Return>
       </Link>
     </Container>
   );

@@ -1,27 +1,31 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import { ThemeContext } from "../../contexts/themeContext";
+import type { ThemeContextType } from "../../contexts/themeContext";
+import type { ThemeName } from "../../contexts/themeProvider";
+import { ThemeConfig } from "../../contexts/themeConfig";
+import { UserContext } from "../../contexts/userContext";
+import { useNavigate } from "react-router-dom";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // ----------------------------------------------------
-// COMPONENTES ESTILIZADOS
+// COMPONENTES ESTILIZADOS COM TEMA
 // ----------------------------------------------------
 
-// 1. CONTAINER PRINCIPAL (div)
-const Container = styled.div`
-  max-width: 90%;
+const Container = styled.div<{ $theme: ThemeName }>`
+  width: 90%;
   margin: auto;
   height: 27rem;
-  background-color: hsl(
-    235,
-    24%,
-    19%
-  ); /* bg-neutral-very-dark-desaturated-blue */
-  border-radius: 1rem; /* rounded-2xl */
+
+  background-color: ${({ $theme }) => ThemeConfig[$theme].todo.backgroundColor};
+
+  border-radius: 1rem;
   display: flex;
   align-items: center;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); /* shadow-2xl */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
 `;
 
 const Warning = styled.span`
@@ -30,18 +34,17 @@ const Warning = styled.span`
   text-transform: uppercase;
 `;
 
-// 2. HEADER CONTAINER (div)
 const HeaderContainer = styled.div`
   width: 100%;
   height: 5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #9ca3af; /* border-b-gray-400 */
+  border-bottom: 1px solid #9ca3af;
 `;
 
-const HeaderTitle = styled.h2`
-  color: hsl(0, 0%, 100%); /* text-white */
+const HeaderTitle = styled.h2<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   font-size: 2rem;
 `;
 
@@ -50,7 +53,7 @@ const Form = styled.form`
   width: 90%;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* gap-2 */
+  gap: 0.5rem;
 `;
 
 const InputGroup = styled.div`
@@ -60,58 +63,57 @@ const InputGroup = styled.div`
   height: 4rem;
 `;
 
-const Label = styled.label`
-  color: hsl(0, 0%, 100%); /* text-white */
+const Label = styled.label<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   font-size: 1.5rem;
   min-width: fit-content;
 `;
 
-const Input = styled.input`
-  background-color: hsl(235, 21%, 11%); /* bg-neutral-very-dark-blue */
+const Input = styled.input<{ $theme: ThemeName }>`
+  background-color: ${({ $theme }) => ThemeConfig[$theme].todo.inputColor};
   padding: 1rem;
   width: 100%;
-  border-radius: 1rem; /* rounded-2xl */
-  color: hsl(0, 0%, 100%); /* text-white */
+  border-radius: 1rem;
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   border: none;
 
   &::placeholder {
-    color: hsl(236, 9%, 61%); /* placeholder-neutral-dark-grayish-blue */
+    color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
+    opacity: 0.6;
   }
 
   &:focus {
-    outline: none; /* focus:outline-none */
-    box-shadow: none; /* focus:ring-0 */
+    outline: none;
+    box-shadow: none;
   }
 `;
 
-// 8. BUTTON (SubmitButton)
 const SubmitButton = styled.button`
-  margin-top: 1.5rem; /* mt-6 */
+  margin-top: 1.5rem;
   width: 100%;
-  background-color: #facc15; /* bg-amber-400 */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); /* shadow-2xl mais forte */
-  color: hsl(235, 24%, 19%); /* text-neutral-very-dark-desaturated-blue */
-  font-weight: 600; /* font-semibold */
-  padding: 0.75rem 0; /* py-3 */
-  border-radius: 0.75rem; /* rounded-xl */
+  background-color: #facc15;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  color: hsl(235, 24%, 19%);
+  font-weight: 600;
+  padding: 0.75rem 0;
+  border-radius: 0.75rem;
   border: none;
   cursor: pointer;
 
-  transition: all 0.3s ease; /* transition duration-300 */
+  transition: all 0.3s ease;
 
   &:hover {
-    background-color: #fcd34d; /* hover:bg-amber-300 */
+    background-color: #fcd34d;
   }
 
   &:active {
-    transform: scale(0.95); /* active:scale-95 */
+    transform: scale(0.95);
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.4);
   }
 `;
 
-// 9. FOOTER LINK (div)
-const FooterLink = styled.div`
-  color: hsl(236, 9%, 61%);
+const FooterLink = styled.p<{ $theme: ThemeName }>`
+  color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
   padding-top: 1rem;
   cursor: pointer;
   font-size: 1.2rem;
@@ -128,13 +130,13 @@ const FooterLink = styled.div`
     bottom: -3px;
     width: 0%;
     height: 2px;
-    background-color: hsl(0, 0%, 100%);
+    background-color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
     border-radius: 2px;
     transition: width 0.3s ease;
   }
 
   &:hover {
-    color: hsl(0, 0%, 100%);
+    color: ${({ $theme }) => ThemeConfig[$theme].layout.textColor};
   }
 
   &:hover::after {
@@ -143,39 +145,66 @@ const FooterLink = styled.div`
 `;
 
 // ----------------------------------------------------
-// COMPONENTE PRINCIPAL (LoginSession)
+// COMPONENTE PRINCIPAL
 // ----------------------------------------------------
+
 export const LoginSession = () => {
+  const { theme } = useContext<ThemeContextType>(ThemeContext);
+  const { setUser } = useContext(UserContext);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [warning, setWarning] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setWarning("preencha todos os campos");
-      return;
-    }
-
     if (!emailRegex.test(email)) {
-      setWarning("email inválido");
+      setError("Email inválido");
       return;
     }
 
-    setWarning("");
-    console.log("Form enviado:", { email, password });
+    try {
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Erro ao fazer login");
+        return;
+      }
+
+      setUser(data);
+
+      localStorage.setItem("user", JSON.stringify(data));
+
+      navigate("/todo");
+    } catch (error) {
+      console.log(error);
+      setError("Erro ao conectar ao servidor");
+    }
   };
+
   return (
-    <Container>
+    <Container $theme={theme}>
       <HeaderContainer>
-        <HeaderTitle>Iniciar sessão</HeaderTitle>
+        <HeaderTitle $theme={theme}>Iniciar sessão</HeaderTitle>
       </HeaderContainer>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleLogin}>
         <InputGroup>
-          <Label htmlFor="email">Email:</Label>
+          <Label $theme={theme} htmlFor="email">
+            Email:
+          </Label>
           <Input
+            $theme={theme}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             placeholder="Digite seu email"
@@ -184,19 +213,26 @@ export const LoginSession = () => {
         </InputGroup>
 
         <InputGroup>
-          <Label htmlFor="password">Password:</Label>
+          <Label $theme={theme} htmlFor="password">
+            Senha:
+          </Label>
           <Input
+            $theme={theme}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="Digite sua senha"
             id="password"
           />
         </InputGroup>
-        {warning && <Warning>{warning}</Warning>}
+
+        {error && <Warning>{error}</Warning>}
+
         <SubmitButton type="submit">Entrar</SubmitButton>
       </Form>
 
-      <Link to="/register"><FooterLink>Cadastre-se</FooterLink></Link>
+      <Link to="/register">
+        <FooterLink $theme={theme}>Cadastre-se</FooterLink>
+      </Link>
     </Container>
   );
 };

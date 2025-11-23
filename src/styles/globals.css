@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
-body{
-  min-height: 100%;
-  box-sizing: border-box;
-  padding: 0;
+@import "tailwindcss";
+
+html, body, #root {
+  height: 100%;
   margin: 0;
-  background-color: var(--color-neutral-very-dark-blue)
+  padding: 0;
+}
+
+body{
+  box-sizing: border-box;
+  background-color: var(--color-neutral-very-dark-blue);
 }
 
 @font-face {
