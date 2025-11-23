@@ -43,11 +43,9 @@ const TaskContainer = styled.li<{ $theme: ThemeName }>`
   width: 100%;
   border-radius: 0.5rem;
   display: flex;
-  justify-content: center;
+  justify-content: space-between; /* separa texto e botão */
+  align-items: center;
   color: ${({ $theme }) => ThemeConfig[$theme].todo.textColor};
-  word-break: break-word;
-  overflow-wrap: break-word;
-  box-sizing: border-box;
 `;
 
 const TodoList = styled.ul<{ $theme: ThemeName }>`
@@ -155,12 +153,57 @@ const Return = styled.p<{ $theme: ThemeName }>`
     width: 100%;
   }
 `;
+
+const DeleteButton = styled.button`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 2rem;
+  height: 2rem;
+
+  background-color: transparent;
+  border: 1px solid red;
+  color: red;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+
+  transition: 0.2s ease;
+
+  &:hover {
+    background-color: red;
+    color: white;
+  }
+`;
 export const TodoSession = () => {
   const { theme } = useContext<ThemeContextType>(ThemeContext);
   const { user, setUser } = useContext<UserContextType>(UserContext);
   const [taskName, setTaskName] = useState("");
 
   console.log("USER CONTEXT →", user);
+
+  async function deleteTask(taskId: number) {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      // remove do estado
+      setUser((prev) => ({
+        ...prev!,
+        tasks: prev!.tasks.filter((task) => task.id !== taskId),
+      }));
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async function createTask(taskName: string) {
     if (!user) return;
@@ -220,6 +263,9 @@ export const TodoSession = () => {
             user.tasks.map((task) => (
               <TaskContainer $theme={theme} key={task.id}>
                 {task.task_name}
+                <DeleteButton onClick={() => deleteTask(task.id)}>
+                  X
+                </DeleteButton>
               </TaskContainer>
             ))
           ) : (
