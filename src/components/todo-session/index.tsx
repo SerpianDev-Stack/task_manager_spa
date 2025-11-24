@@ -177,6 +177,38 @@ const DeleteButton = styled.button`
     color: white;
   }
 `;
+const ToggleButton = styled.button<{ $completed: boolean }>`
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+
+  background-color: ${({ $completed }) =>
+    $completed ? "hsl(140, 60%, 40%)" : "hsl(220, 20%, 50%)"};
+  color: white;
+
+  transition: 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`
+const TaskText = styled.span<{ $completed: boolean; $theme: ThemeName }>`
+    color: ${({ $completed, $theme }) =>
+      $completed
+        ? ThemeConfig[$theme].todo.textColor + "AA" /* mais opaco */
+        : ThemeConfig[$theme].todo.textColor};
+
+    text-decoration: ${({ $completed }) =>
+      $completed ? "line-through" : "none"};
+
+    opacity: ${({ $completed }) => ($completed ? 0.6 : 1)};
+    font-style: ${({ $completed }) => ($completed ? "italic" : "normal")};
+    transition: 0.25s ease;
+  `;
+
+;
 export const TodoSession = () => {
   const { theme } = useContext<ThemeContextType>(ThemeContext);
   const { user, setUser } = useContext<UserContextType>(UserContext);
@@ -235,6 +267,33 @@ export const TodoSession = () => {
     createTask(taskName);
   }
 
+  async function toggleTaskState(taskId: number, currentState: boolean) {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ state: !currentState }), // alterna o estado
+      });
+
+      const data = await response.json();
+      console.log("Estado atualizado:", data);
+
+      // Atualiza no estado local também
+      setUser((prev) => ({
+        ...prev!,
+        tasks: prev!.tasks.map((task) =>
+          task.id === taskId ? { ...task, state: !currentState } : task
+        ),
+      }));
+    } catch (error) {
+      console.log("Erro ao atualizar estado:", error);
+    }
+  }
+
   return (
     <>
       <Container $theme={theme}>
@@ -262,10 +321,22 @@ export const TodoSession = () => {
           {user?.tasks?.length ? (
             user.tasks.map((task) => (
               <TaskContainer $theme={theme} key={task.id}>
-                {task.task_name}
-                <DeleteButton onClick={() => deleteTask(task.id)}>
-                  X
-                </DeleteButton>
+                <TaskText $completed={task.state} $theme={theme}>
+                  {task.task_name}
+                </TaskText>
+
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <ToggleButton
+                    $completed={task.state}
+                    onClick={() => toggleTaskState(task.id, task.state)}
+                  >
+                    {task.state ? "✔" : "○"}
+                  </ToggleButton>
+
+                  <DeleteButton onClick={() => deleteTask(task.id)}>
+                    X
+                  </DeleteButton>
+                </div>
               </TaskContainer>
             ))
           ) : (
