@@ -193,26 +193,42 @@ const ToggleButton = styled.button<{ $completed: boolean }>`
   &:hover {
     opacity: 0.9;
   }
-`
+`;
 const TaskText = styled.span<{ $completed: boolean; $theme: ThemeName }>`
-    color: ${({ $completed, $theme }) =>
-      $completed
-        ? ThemeConfig[$theme].todo.textColor + "AA" /* mais opaco */
-        : ThemeConfig[$theme].todo.textColor};
+  color: ${({ $completed, $theme }) =>
+    $completed
+      ? ThemeConfig[$theme].todo.textColor + "AA" /* mais opaco */
+      : ThemeConfig[$theme].todo.textColor};
 
-    text-decoration: ${({ $completed }) =>
-      $completed ? "line-through" : "none"};
+  text-decoration: ${({ $completed }) =>
+    $completed ? "line-through" : "none"};
 
-    opacity: ${({ $completed }) => ($completed ? 0.6 : 1)};
-    font-style: ${({ $completed }) => ($completed ? "italic" : "normal")};
-    transition: 0.25s ease;
-  `;
+  opacity: ${({ $completed }) => ($completed ? 0.6 : 1)};
+  font-style: ${({ $completed }) => ($completed ? "italic" : "normal")};
+  transition: 0.25s ease;
+`;
 
-;
+const Controls = styled.div<{ $theme: ThemeName }>`
+  display: flex;
+  justify-content:space-between;
+  width:100%;
+  padding:1rem;
+  color:${({ $theme }) => ThemeConfig[$theme].todo.textColor};
+  border-bottom: 1px solid ${({ $theme }) =>
+    ThemeConfig[$theme].todo.borderColor};
+  }
+`;
+const Options = styled.p`
+  cursor: pointer;
+  &:hover {
+    color: hsl(220, 80%, 60%);
+  }
+`;
 export const TodoSession = () => {
   const { theme } = useContext<ThemeContextType>(ThemeContext);
   const { user, setUser } = useContext<UserContextType>(UserContext);
   const [taskName, setTaskName] = useState("");
+  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
 
   console.log("USER CONTEXT →", user);
 
@@ -294,6 +310,12 @@ export const TodoSession = () => {
     }
   }
 
+  const filteredTasks = (user?.tasks ?? []).filter((task) => {
+    if (filter === "completed") return task.state;
+    if (filter === "pending") return !task.state;
+    return true;
+  });
+
   return (
     <>
       <Container $theme={theme}>
@@ -318,8 +340,8 @@ export const TodoSession = () => {
           </Button>
         </Form>
         <TodoList $theme={theme}>
-          {user?.tasks?.length ? (
-            user.tasks.map((task) => (
+          {filteredTasks.length ? (
+            filteredTasks.map((task) => (
               <TaskContainer $theme={theme} key={task.id}>
                 <TaskText $completed={task.state} $theme={theme}>
                   {task.task_name}
@@ -345,6 +367,27 @@ export const TodoSession = () => {
             </TaskContainer>
           )}
         </TodoList>
+
+        <Controls $theme={theme}>
+          <Options onClick={() => setFilter("completed")}>
+            Show Completed
+          </Options>
+          <Options onClick={() => setFilter("pending")}>Show Pending</Options>
+          <Options onClick={() => setFilter("all")}>Show All</Options>
+          <Options onClick={() => setUser((prev) => ({ ...prev!, tasks: [] }))}>
+            Clear List
+          </Options>
+          <Options
+            onClick={() =>
+              setUser((prev) => ({
+                ...prev!,
+                tasks: prev!.tasks.filter((task) => task.state === false),
+              }))
+            }
+          >
+            Delete Completed
+          </Options>
+        </Controls>
         <Link to="/">
           <Return $theme={theme}>Voltar</Return>
         </Link>
