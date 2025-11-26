@@ -8,8 +8,6 @@ export const useTasks = () => {
   const [taskName, setTaskName] = useState("");
   const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
 
-  console.log("USER CONTEXT →", user);
-
   async function createTask(name: string) {
     if (!user) return;
 

@@ -40,7 +40,6 @@ const IconImg = styled.img`
 export const TodoHeader = () => {
   const { theme, toggleTheme } = useContext<ThemeContextType>(ThemeContext);
 
-  console.log(ThemeConfig[theme]);
   return (
     <HeaderContainer>
       <Title>TASK LIST</Title>
