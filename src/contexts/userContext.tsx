@@ -4,6 +4,7 @@ export type User = {
   id: number;
   user_name: string;
   email: string;
+  created_in: string;
   tasks: {
     id: number;
     task_name: string;

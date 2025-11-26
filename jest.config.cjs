@@ -1,11 +1,17 @@
+/** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: "jsdom",
   transform: {
-    "^.+\\.(ts|tsx)$": "esbuild-jest",
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.jest.json"
+      }
+    ]
   },
   moduleNameMapper: {
     "\\.(css|less|scss)$": "<rootDir>/__mocks__/styleMock.js",
-    "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js",
+    "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js"
   },
-  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"]
 };

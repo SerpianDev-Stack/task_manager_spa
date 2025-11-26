@@ -11,7 +11,8 @@ describe("storageService", () => {
       id: 1,
       user_name: "Pedro",
       email: "pedro@email.com",
-      tasks: []
+      tasks: [],
+      created_in: "2025-11-26",
     };
 
     storageService.saveUser(fakeUser);
@@ -27,7 +28,7 @@ describe("storageService", () => {
       id: 2,
       user_name: "Ana",
       email: "ana@email.com",
-      tasks: []
+      tasks: [],
     };
 
     localStorage.setItem("user", JSON.stringify(fakeUser));
